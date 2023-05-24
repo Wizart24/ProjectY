@@ -1,3 +1,5 @@
+using ProjectY.Services.PictureService;
+
 namespace ProjectY
 {
 	public class Program
@@ -12,6 +14,9 @@ namespace ProjectY
 			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 			builder.Services.AddEndpointsApiExplorer();
 			builder.Services.AddSwaggerGen();
+			builder.Services.AddAutoMapper(typeof(Program).Assembly);
+
+			builder.Services.AddScoped<IPictureService, PictureService>();
 
 			var app = builder.Build();
 
