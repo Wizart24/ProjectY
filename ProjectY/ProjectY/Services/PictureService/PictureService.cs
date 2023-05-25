@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
+using ProjectY.Data;
 using ProjectY.Dtos.Picture;
 using ProjectY.Models;
 
@@ -6,16 +8,13 @@ namespace ProjectY.Services.PictureService
 {
 	public class PictureService : IPictureService
 	{
-		private static List<Picture> pictures = new List<Picture>
-		{
-			new Picture(),
-			new Picture {Id = 2, Name = "Dog"}
-		};
 		private readonly IMapper _mapper;
+		private readonly DataContext _context;
 
-		public PictureService(IMapper mapper)
+		public PictureService(IMapper mapper, DataContext context)
         {
 			_mapper = mapper;
+			_context = context;
 		}
 
         public async Task<ServiceResponse<List<GetPictureDto>>> AddPicture(AddPictureDto picture)
@@ -23,9 +22,10 @@ namespace ProjectY.Services.PictureService
 			var serviceResponse = new ServiceResponse<List<GetPictureDto>>();
 			var newPicture = _mapper.Map<Picture>(picture);
 
-			newPicture.Id = pictures.Max(x => x.Id) + 1;
-			pictures.Add(newPicture);
-			serviceResponse.Data = pictures.Select(x => _mapper.Map<GetPictureDto>(x)).ToList();
+			_context.Pictures.Add(newPicture);
+			await _context.SaveChangesAsync();
+
+			serviceResponse.Data = await _context.Pictures.Select(x => _mapper.Map<GetPictureDto>(x)).ToListAsync();
 
 			return serviceResponse;
 		}
@@ -34,7 +34,9 @@ namespace ProjectY.Services.PictureService
 		{
 			var serviceResponse = new ServiceResponse<List<GetPictureDto>>();
 
-			serviceResponse.Data = pictures.Select(x => _mapper.Map<GetPictureDto>(x)).ToList();
+			var dbPictures = await _context.Pictures.ToListAsync();
+
+			serviceResponse.Data = dbPictures.Select(x => _mapper.Map<GetPictureDto>(x)).ToList();
 			return serviceResponse;
 		}
 
@@ -42,7 +44,7 @@ namespace ProjectY.Services.PictureService
 		{
 			var serviceResponse = new ServiceResponse<GetPictureDto>();
 
-			var picture = pictures.FirstOrDefault(x => x.Id == id);
+			var picture = await _context.Pictures.FirstOrDefaultAsync(x => x.Id == id);
 			serviceResponse.Data = _mapper.Map<GetPictureDto>(picture);
 			return serviceResponse;
 		}
@@ -53,7 +55,7 @@ namespace ProjectY.Services.PictureService
 
 			try
 			{
-				var updatePicture = pictures.FirstOrDefault(x => x.Id == picture.Id);
+				var updatePicture = await _context.Pictures.FirstOrDefaultAsync(x => x.Id == picture.Id);
 				if (picture == null)
 				{
 					throw new Exception($"Picture with ID '{picture.Id}' not found.");
@@ -63,8 +65,9 @@ namespace ProjectY.Services.PictureService
 				updatePicture.Description = picture.Description;
 				updatePicture.Price = picture.Price;
 				updatePicture.Quantity = picture.Quantity;
-				updatePicture.UploadTime = picture.UploadTime;
+				//updatePicture.UploadTime = picture.UploadTime;
 
+				await _context.SaveChangesAsync();
 				serviceResponse.Data = _mapper.Map<GetPictureDto>(updatePicture);
 			}
 			catch (Exception ex) 
@@ -82,15 +85,16 @@ namespace ProjectY.Services.PictureService
 
 			try
 			{
-				var deletePicture = pictures.First(x => x.Id == id);
+				var deletePicture = await _context.Pictures.FirstOrDefaultAsync(x => x.Id == id);
 				if (deletePicture == null)
 				{
 					throw new Exception($"Picture with ID '{id}' not found.");
 				}
 
-				pictures.Remove(deletePicture);
+				_context.Pictures.Remove(deletePicture);
+				await _context.SaveChangesAsync();
 
-				serviceResponse.Data = pictures.Select(x => _mapper.Map<GetPictureDto>(x)).ToList();
+				serviceResponse.Data = await _context.Pictures.Select(x => _mapper.Map<GetPictureDto>(x)).ToListAsync();
 			}
 			catch (Exception ex)
 			{

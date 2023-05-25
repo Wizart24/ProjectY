@@ -10,6 +10,6 @@ namespace ProjectY.Data
             
         }
 
-        public DbSet<Picture> Pirctures { get; set; }
+        public DbSet<Picture> Pictures { get; set; }
     }
 }
