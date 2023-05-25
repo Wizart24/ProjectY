@@ -57,5 +57,25 @@ namespace ProjectY.Controllers
 				return NotFound(response);
 			return Ok(response);
 		}
+
+		[HttpPost("upload")]
+		public async Task<IActionResult> UploadPicture([FromForm] IFormFile file)
+		{
+			if (file == null || file.Length == 0)
+			{
+				return BadRequest("No file uploaded.");
+			}
+
+			// Process the uploaded file
+			string fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+			string filePath = Path.Combine("path_to_upload_folder", fileName); // Specify the desired path to save the file
+			using (var stream = new FileStream(filePath, FileMode.Create))
+			{
+				await file.CopyToAsync(stream);
+			}
+
+			// Return a successful response
+			return Ok("Picture uploaded successfully.");
+		}
 	}
 }
