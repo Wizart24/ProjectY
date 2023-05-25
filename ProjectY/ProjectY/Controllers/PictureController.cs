@@ -1,11 +1,14 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ProjectY.Dtos.Picture;
 using ProjectY.Models;
 using ProjectY.Services.PictureService;
+using System.Security.Claims;
 
 namespace ProjectY.Controllers
 {
+	[Authorize]
 	[Route("api/[controller]")]
 	[ApiController]
 	public class PictureController : ControllerBase
@@ -20,7 +23,9 @@ namespace ProjectY.Controllers
         [HttpGet]
 		public async Task<ActionResult<ServiceResponse<List<GetPictureDto>>>> GetAll()
 		{
-			return Ok(await _pictureService.GetAllPictures());
+			int userId = int.Parse(User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)!.Value);
+
+			return Ok(await _pictureService.GetAllPictures(userId));
 		}
 
 		[HttpGet("{id}")]

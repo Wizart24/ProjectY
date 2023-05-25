@@ -30,11 +30,11 @@ namespace ProjectY.Services.PictureService
 			return serviceResponse;
 		}
 
-		public async Task<ServiceResponse<List<GetPictureDto>>> GetAllPictures()
+		public async Task<ServiceResponse<List<GetPictureDto>>> GetAllPictures(int userId)
 		{
 			var serviceResponse = new ServiceResponse<List<GetPictureDto>>();
 
-			var dbPictures = await _context.Pictures.ToListAsync();
+			var dbPictures = await _context.Pictures.Where(x => x.User!.Id == userId).ToListAsync();
 
 			serviceResponse.Data = dbPictures.Select(x => _mapper.Map<GetPictureDto>(x)).ToList();
 			return serviceResponse;
@@ -58,10 +58,10 @@ namespace ProjectY.Services.PictureService
 				var updatePicture = await _context.Pictures.FirstOrDefaultAsync(x => x.Id == picture.Id);
 				if (picture == null)
 				{
-					throw new Exception($"Picture with ID '{picture.Id}' not found.");
+					throw new Exception($"Picture with ID '{picture!.Id}' not found.");
 				}
 
-				updatePicture.Name = picture.Name;
+				updatePicture!.Name = picture.Name;
 				updatePicture.Description = picture.Description;
 				updatePicture.Price = picture.Price;
 				updatePicture.Quantity = picture.Quantity;

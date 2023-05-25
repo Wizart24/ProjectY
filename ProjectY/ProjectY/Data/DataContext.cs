@@ -11,5 +11,6 @@ namespace ProjectY.Data
         }
 
         public DbSet<Picture> Pictures { get; set; }
+        public DbSet<User> Users { get; set; }
     }
 }
